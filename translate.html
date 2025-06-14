@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Translate App</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 2rem;
+      background-color: #f4f7f6;
+      color: #333;
+      line-height: 1.6;
+    }
+    h2 {
+      color: #2c3e50;
+      border-bottom: 2px solid #3498db;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    textarea {
+      width: 100%;
+      max-width: 600px;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box; /* Include padding and border in the element's total width and height */
+      font-size: 1rem;
+    }
+    label {
+      margin-right: 15px;
+      font-weight: bold;
+      color: #555;
+    }
+    input[type="text"] {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      width: 60px; /* Adjust width for language codes */
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #2980b9;
+    }
+    h3 {
+      color: #2c3e50;
+      margin-top: 2rem;
+      border-bottom: 1px dashed #ccc;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem; /* Adjusted for better spacing */
+    }
+    pre {
+      background-color: #e9ecef;
+      padding: 15px;
+      border-radius: 5px;
+      white-space: pre-wrap; /* Ensures text wraps within the pre tag */
+      word-wrap: break-word; /* Breaks long words if necessary */
+      font-size: 1.1rem;
+      color: #333;
+      border: 1px solid #dee2e6;
+      min-height: 50px; /* Ensure some visibility even when empty */
+    }
+    .language-codes-info {
+        margin-top: 1.5rem;
+        font-size: 0.9em;
+        color: #666;
+        background-color: #f8f9fa;
+        border-left: 5px solid #007bff;
+        padding: 10px 15px;
+        border-radius: 4px;
+    }
+    .language-codes-info a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    .language-codes-info a:hover {
+        text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h2>Multilingual Text Translator</h2>
+
+  <textarea id="inputText" placeholder="Enter text to translate..." rows="6" cols="70"></textarea><br><br>
+
+  <label for="sourceLang">From:</label>
+  <input type="text" id="sourceLang" value="en" size="5">
+
+  <label for="targetLang">To:</label>
+  <input type="text" id="targetLang" value="fr" size="5"><br><br>
+
+  <button onclick="Translate()">Translate</button>
+
+  <h3>Translated Result:</h3>
+  <pre id="resultText">Translated text will appear here...</pre>
+
+  <div class="language-codes-info">
+    <p><strong>Supported Language Codes:</strong> English (en), French (fr), Spanish (es), Tamil (ta), Hindi (hi), German (de), Chinese (zh), Arabic (ar).</p>
+    <p>For a full list of supported languages, refer to the <a href="https://docs.aws.amazon.com/translate/latest/dg/what-is.html" target="_blank">AWS Translate documentation</a>.</p>
+  </div>
+
+    <script defer>
+    window.Translate = async () => {
+      const text = document.getElementById("inputText").value;
+      const source = document.getElementById("sourceLang").value;
+      const target = document.getElementById("targetLang").value;
+
+      // Basic validation
+      if (!text || !source || !target) {
+        alert("Please enter text and both source and target language codes.");
+        return;
+      }
+
+      // Show a loading message
+      document.getElementById("resultText").innerText = "Translating...";
+
+      try {
+        const response = await fetch("http://localhost:8000/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, source, target })
+        });
+
+        if (!response.ok) {  
+          // Handle HTTP errors
+          const errorData = await response.json();
+          throw new Error(`Server error: ${response.status} - ${errorData.error || 'Unknown error'}`);
+        }
+
+        const data = await response.json();
+        console.log(data)
+        document.getElementById("resultText").innerText = data.translated;
+      } catch (error) {
+        console.error("Translation error:", error);
+        document.getElementById("resultText").innerText = `Error: ${error.message}. Please check your input, server status, and AWS credentials.`;
+      }
+    }
+  </script>
+</body>
+</html>
